@@ -36,9 +36,13 @@ public class VendingMachineConsole {
                 case "P" -> printLogs();
                 case "R" -> resetMachine();
                 case "Q" -> {
-                    cancelTransaction();
-                    System.out.println("Thank you for using the vending machine!");
-                    return;
+                    if (verifyPin()) {
+                        cancelTransaction();
+                        System.out.println("Thank you for using the vending machine!");
+                        return;
+                    } else {
+                        System.out.println("Invalid PIN. Cannot Quit!");
+                    }
                 }
                 default -> System.out.println("Invalid option. Please try again.");
             }
@@ -50,11 +54,11 @@ public class VendingMachineConsole {
         System.out.println("1. Insert Coin");
         System.out.println("2. Select Product");
         System.out.println("3. Cancel Transaction");
-        System.out.println("Q. Quit");
         System.out.println("**** admin only****");
         System.out.println("D. Display Inventory (admin)");
         System.out.println("P. Print Logs (admin)");
         System.out.println("R. Reset Machine (admin)");
+        System.out.println("Q. Quit (admin)");
         System.out.println("*******************");
         System.out.println("Amount available : " + vendingMachine.getCurrentState().getTransaction().insertedAmount());
         System.out.print("Choose an option: ");
