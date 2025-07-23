@@ -4,9 +4,9 @@ import com.ssctech.vendingmachine.model.CoinBox;
 import com.ssctech.vendingmachine.model.Inventory;
 
 public class VendingMachineState {
-    private Inventory inventory;
-    private CoinBox coinBox;
-    private TransactionState transaction;
+    private final Inventory inventory;
+    private final CoinBox coinBox;
+    private final TransactionState transaction;
 
     public VendingMachineState(Inventory inventory, CoinBox coinBox, TransactionState state) {
         this.coinBox = coinBox;
@@ -26,7 +26,7 @@ public class VendingMachineState {
         return new VendingMachineState(newInventory, coinBox, transaction);
     }
 
-    public VendingMachineState withCoinBank(CoinBox newCoinBox) {
+    public VendingMachineState withCoinBox(CoinBox newCoinBox) {
         return new VendingMachineState(inventory, newCoinBox, transaction);
     }
 
@@ -38,7 +38,7 @@ public class VendingMachineState {
         return inventory;
     }
 
-    public CoinBox getCoinBank() {
+    public CoinBox getCoinBox() {
         return coinBox;
     }
 

@@ -4,6 +4,7 @@ import com.ssctech.vendingmachine.exception.VendingException;
 import com.ssctech.vendingmachine.model.CoinTender;
 import com.ssctech.vendingmachine.model.Money;
 import com.ssctech.vendingmachine.model.Product;
+import com.ssctech.vendingmachine.result.PurchaseResult;
 import com.ssctech.vendingmachine.result.RefundResult;
 
 import java.util.Scanner;
@@ -30,8 +31,7 @@ public class VendingMachineConsole {
                 case "2" -> selectProductMenu();
                 case "3" -> cancelTransaction();
                 case "4" -> displayInventory();
-// TODO         case "5" -> showAuditLog();
-
+                case "5" -> printLogs();
                 case "R" -> resetMachine();
                 case "Q" -> {
                     System.out.println("Thank you for using the vending machine!");
@@ -47,7 +47,8 @@ public class VendingMachineConsole {
         System.out.println("1. Insert Coin");
         System.out.println("2. Select Product");
         System.out.println("3. Cancel Transaction");
-        System.out.println("4. Display inventory (admin)");
+        System.out.println("D. Display Inventory (admin)");
+        System.out.println("P. Print Logs (admin)");
         System.out.println("R. Reset Machine (admin)");
         System.out.println("Q. Quit");
         System.out.println("Amount available : " + vendingMachine.getCurrentState().getTransaction().insertedAmount());
@@ -87,9 +88,13 @@ public class VendingMachineConsole {
             int choice = Integer.parseInt(scanner.nextLine().trim());
             if (choice >= 1 && choice <= Product.values().length) {
                 Product selectedProduct = Product.values()[choice - 1];
-                vendingMachine.selectProduct(selectedProduct);
-            } else {
-                System.out.println("Invalid product selection");
+                PurchaseResult purchaseResult = vendingMachine.selectProduct(selectedProduct);
+                System.out.printf("Product dispensed: %s%n", purchaseResult.product().getName());
+                if (purchaseResult.change().isGreaterThan(Money.zero())) {
+                    System.out.printf("Change: %s %s%n", purchaseResult.change(), purchaseResult.changeCoinTenders());
+                } else {
+                    System.out.println("Invalid product selection");
+                }
             }
         } catch (NumberFormatException e) {
             System.out.println("Invalid input. Please enter a number.");
@@ -131,5 +136,13 @@ public class VendingMachineConsole {
         System.out.print("Enter supplier PIN: ");
         String enteredPin = scanner.nextLine().trim();
         return supplierPin.equals(enteredPin);
+    }
+
+    private void printLogs() {
+        if (verifyPin()) {
+            vendingMachine.getAuditLog().print();
+        } else {
+            System.out.println("Invalid PIN. Request denied.");
+        }
     }
 }

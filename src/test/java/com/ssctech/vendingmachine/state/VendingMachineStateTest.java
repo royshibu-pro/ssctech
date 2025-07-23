@@ -18,7 +18,7 @@ class VendingMachineStateTest {
         VendingMachineState state = VendingMachineState.initialize();
         
         assertNotNull(state.getInventory());
-        assertNotNull(state.getCoinBank());
+        assertNotNull(state.getCoinBox());
         assertNotNull(state.getTransaction());
         assertEquals(Money.zero(), state.getTransaction().insertedAmount());
     }
@@ -33,7 +33,7 @@ class VendingMachineStateTest {
         
         assertNotSame(state, newState);
         assertSame(newInventory, newState.getInventory());
-        assertSame(state.getCoinBank(), newState.getCoinBank());
+        assertSame(state.getCoinBox(), newState.getCoinBox());
         assertSame(state.getTransaction(), newState.getTransaction());
     }
     
@@ -43,10 +43,10 @@ class VendingMachineStateTest {
         VendingMachineState state = VendingMachineState.initialize();
         CoinBox newCoinBox = new CoinBox();
         
-        VendingMachineState newState = state.withCoinBank(newCoinBox);
+        VendingMachineState newState = state.withCoinBox(newCoinBox);
         
         assertNotSame(state, newState);
-        assertSame(newCoinBox, newState.getCoinBank());
+        assertSame(newCoinBox, newState.getCoinBox());
         assertSame(state.getInventory(), newState.getInventory());
         assertSame(state.getTransaction(), newState.getTransaction());
     }
@@ -62,6 +62,6 @@ class VendingMachineStateTest {
         assertNotSame(state, newState);
         assertSame(newTransaction, newState.getTransaction());
         assertSame(state.getInventory(), newState.getInventory());
-        assertSame(state.getCoinBank(), newState.getCoinBank());
+        assertSame(state.getCoinBox(), newState.getCoinBox());
     }
 }
