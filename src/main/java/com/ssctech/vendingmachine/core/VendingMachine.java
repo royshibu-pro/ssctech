@@ -103,10 +103,8 @@ public class VendingMachine {
         Money refundAmount = transaction.insertedAmount();
         List<CoinTender> refundCoinTenders = transaction.insertedCoinTenders();
 
-        Optional<CoinBox> updatedCoinBoxOpt = this.state.getCoinBox().removeCoins(refundCoinTenders);
-
+        // reset the state with a fresh transactions state
         this.state = this.state
-                .withCoinBox(updatedCoinBoxOpt.get())
                 .withTransaction(TransactionState.empty());
 
         System.out.printf("Transaction cancelled. Refund: %s%n", refundAmount);
