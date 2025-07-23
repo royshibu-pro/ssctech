@@ -44,13 +44,7 @@ public class Inventory {
         return items.get(product).stock();
     }
 
-    public void displayInventory() {
-        System.out.println("\n=== INVENTORY STATUS ===");
-        items.values().forEach(item ->
-                System.out.printf("%s: %d units remaining (Price: %s)%n",
-                        item.product().getName(),
-                        item.stock(),
-                        Money.of(item.product().getPrice())));
-        System.out.println("========================");
+    public Map<Product, InventoryItem> getItems() {
+        return items;
     }
 }

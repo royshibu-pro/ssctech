@@ -2,11 +2,13 @@ package com.ssctech.vendingmachine.core;
 
 import com.ssctech.vendingmachine.exception.VendingException;
 import com.ssctech.vendingmachine.model.CoinTender;
+import com.ssctech.vendingmachine.model.InventoryItem;
 import com.ssctech.vendingmachine.model.Money;
 import com.ssctech.vendingmachine.model.Product;
 import com.ssctech.vendingmachine.result.PurchaseResult;
 import com.ssctech.vendingmachine.result.RefundResult;
 
+import java.util.Map;
 import java.util.Scanner;
 
 public class VendingMachineConsole {
@@ -30,10 +32,11 @@ public class VendingMachineConsole {
                 case "1" -> insertCoinMenu();
                 case "2" -> selectProductMenu();
                 case "3" -> cancelTransaction();
-                case "4" -> displayInventory();
-                case "5" -> printLogs();
+                case "D" -> displayInventory();
+                case "P" -> printLogs();
                 case "R" -> resetMachine();
                 case "Q" -> {
+                    cancelTransaction();
                     System.out.println("Thank you for using the vending machine!");
                     return;
                 }
@@ -47,10 +50,12 @@ public class VendingMachineConsole {
         System.out.println("1. Insert Coin");
         System.out.println("2. Select Product");
         System.out.println("3. Cancel Transaction");
+        System.out.println("Q. Quit");
+        System.out.println("**** admin only****");
         System.out.println("D. Display Inventory (admin)");
         System.out.println("P. Print Logs (admin)");
         System.out.println("R. Reset Machine (admin)");
-        System.out.println("Q. Quit");
+        System.out.println("*******************");
         System.out.println("Amount available : " + vendingMachine.getCurrentState().getTransaction().insertedAmount());
         System.out.print("Choose an option: ");
     }
@@ -112,7 +117,26 @@ public class VendingMachineConsole {
 
     private void displayInventory() {
         if (verifyPin()) {
-            vendingMachine.getCurrentState().getInventory().displayInventory();
+            Map<Product, InventoryItem> items = vendingMachine.getCurrentState().getInventory().getItems();
+            System.out.println("\n=== INVENTORY STATUS ===");
+            items.values().forEach(item ->
+                    System.out.printf("%s: %d units remaining (Price: %s)%n",
+                            item.product().getName(),
+                            item.stock(),
+                            Money.of(item.product().getPrice())));
+            System.out.println("========================");
+            System.out.println("Coins available in the machine");
+            Map<CoinTender, Integer> coins = vendingMachine.getCurrentState().getCoinBox().getCoins();
+            coins.entrySet().stream().sorted(Map.Entry.comparingByKey())
+                    .forEach(entry -> {
+                        CoinTender coin = entry.getKey();
+                        Integer count = entry.getValue();
+                        System.out.printf("%s(%s) x %d%n", coin, Money.of(coin.getValue()), count);
+                    });
+            System.out.println("========================");
+            System.out.println("Total amount " + vendingMachine.getCurrentState().getCoinBox().getTotalValue());
+            System.out.println("========================");
+
         } else {
             System.out.println("Invalid PIN. Access denied.");
         }

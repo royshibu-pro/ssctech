@@ -38,11 +38,9 @@ public class VendingMachine {
 
 
     public void insertCoin(CoinTender coinTender) {
+        // adds the coin to the transaction
         TransactionState newTransaction = this.state.getTransaction().addCoin(coinTender);
-        CoinBox newCoinBox = this.state.getCoinBox().addCoin(coinTender);
-
-        this.state = this.state.withTransaction(newTransaction)
-                .withCoinBox(newCoinBox);
+        this.state = this.state.withTransaction(newTransaction);
 
                 auditLog.addEvent(new VendingEvent.CoinInserted(coinTender, newTransaction.insertedAmount(), LocalDateTime.now()));
         System.out.printf("Coin inserted: %s, Total: %s%n", coinTender, newTransaction.insertedAmount());
@@ -63,6 +61,7 @@ public class VendingMachine {
         }
 
         Money changeAmount = insertedAmount.subtract(productPrice);
+        // determine the change coins
         List<CoinTender> changeCoinTenders = new ArrayList<>();
         if (changeAmount.isGreaterThan(Money.zero())) {
             Optional<List<CoinTender>> changeOpt = changeStrategy.makeChange(changeAmount, this.state.getCoinBox().getCoins());
@@ -71,17 +70,22 @@ public class VendingMachine {
             }
             changeCoinTenders = changeOpt.get();
         }
-
+        // dispense the product
         Inventory newInventory = this.state.getInventory().dispenseProduct(product);
-        Optional<CoinBox> newCoinBankOpt = this.state.getCoinBox().removeCoins(changeCoinTenders);
-        if (newCoinBankOpt.isEmpty()) {
+        // update coin box with the new coin count
+        Optional<CoinBox> newCoinBoxOpt = this.state.getCoinBox().removeCoins(changeCoinTenders);
+        if (newCoinBoxOpt.isEmpty()) {
             throw new VendingException("Cannot dispense change due to coin bank error");
         }
 
-        // reset the state to a new machine
+        // add the inserted coins and update the coin box
+        List<CoinTender> addedCoins = this.state.getTransaction().insertedCoinTenders();
+        CoinBox updatedCoinBox = newCoinBoxOpt.get().addCoins(addedCoins);
+
+        // set new state with currently available coin and inventory
         this.state = this.state
                 .withInventory(newInventory)
-                .withCoinBox(newCoinBankOpt.get())
+                .withCoinBox(updatedCoinBox)
                 .withTransaction(TransactionState.empty());
 
         auditLog.addEvent(new VendingEvent.ProductDispensed(product, changeAmount,LocalDateTime.now()));
@@ -99,7 +103,12 @@ public class VendingMachine {
         Money refundAmount = transaction.insertedAmount();
         List<CoinTender> refundCoinTenders = transaction.insertedCoinTenders();
 
-        this.state = this.state.withTransaction(TransactionState.empty());
+        Optional<CoinBox> updatedCoinBoxOpt = this.state.getCoinBox().removeCoins(refundCoinTenders);
+
+        this.state = this.state
+                .withCoinBox(updatedCoinBoxOpt.get())
+                .withTransaction(TransactionState.empty());
+
         System.out.printf("Transaction cancelled. Refund: %s%n", refundAmount);
         auditLog.addEvent(new VendingEvent.TransactionCancelled(refundAmount, LocalDateTime.now()));
         return new RefundResult(refundAmount, refundCoinTenders);
